@@ -30,6 +30,7 @@ const TOKEN_CHAR = /[^\s"'`{}]/;
 
 /** @type {vscode.OutputChannel} */
 let log;
+let diagnostics;
 /** корень проекта (папка с rendit.config.mjs) → Promise<Project> */
 const projects = new Map();
 let roots = [];
@@ -431,6 +432,65 @@ function classStrings(text) {
   return out;
 }
 
+async function updateDiagnostics(doc) {
+  if (doc.isClosed) return;
+
+  const enabled = vscode.workspace
+    .getConfiguration("renditCode")
+    .get("validateClasses", false);
+
+  if (!enabled) {
+    diagnostics.delete(doc.uri);
+    return;
+  }
+
+  const version = doc.version;
+  const project = await projectFor(doc);
+
+  if (!project || doc.isClosed || doc.version !== version) {
+    return;
+  }
+
+  const result = [];
+  const source = doc.getText();
+
+  for (const { start, value } of classStrings(source)) {
+    for (const match of value.matchAll(/\S+/g)) {
+      const cls = match[0];
+
+      // Не проверяем динамические классы и слишком длинные значения.
+      if (
+        !cls ||
+        cls.length > 256 ||
+        cls.includes("${") ||
+        cls.includes("}")
+      ) {
+        continue;
+      }
+
+      if (project.generator.isValid(cls)) continue;
+
+      const from = doc.positionAt(start + match.index);
+      const to = doc.positionAt(start + match.index + cls.length);
+
+      const diagnostic = new vscode.Diagnostic(
+        new vscode.Range(from, to),
+        `Неизвестный класс RenDit Code: "${cls}"`,
+        vscode.DiagnosticSeverity.Warning,
+      );
+
+      diagnostic.source = "RenDit Code";
+      diagnostic.code = "unknown-class";
+
+      result.push(diagnostic);
+    }
+  }
+
+  if (doc.version === version && !doc.isClosed) {
+    diagnostics.set(doc.uri, result);
+  }
+}
+
 const colorProvider = {
   async provideDocumentColors(doc) {
     if (
@@ -472,10 +532,13 @@ function reloadAll() {
 
 async function activate(context) {
   log = vscode.window.createOutputChannel("RenDit Code");
+  diagnostics = vscode.languages.createDiagnosticCollection("rendit-code");
+
   await findRoots();
 
   context.subscriptions.push(
     log,
+    diagnostics,
     vscode.languages.registerCompletionItemProvider(
       SELECTOR,
       completionProvider,
