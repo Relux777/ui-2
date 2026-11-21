@@ -5,9 +5,27 @@
   "version": "0.1.0",
   "publisher": "rendit",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relux777/ui-2.git",
+    "directory": "rendit-code/vscode"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
+  "activationEvents": [
+    "workspaceContains:**/rendit.config.mjs",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:html",
+    "onLanguage:markdown",
+    "onLanguage:mdx",
+    "onLanguage:vue",
+    "onLanguage:svelte",
+    "onLanguage:astro"
+  ],
   "categories": [
     "Programming Languages",
     "Linters"
@@ -19,9 +37,6 @@
     },
     "virtualWorkspaces": false
   },
-  "activationEvents": [
-    "workspaceContains:**/rendit.config.mjs"
-  ],
   "main": "./extension.js",
   "contributes": {
     "configuration": {
@@ -45,6 +60,11 @@
           "type": "boolean",
           "default": true,
           "description": "Показывать образцы цвета рядом с классами bg-…, text-…, border-…"
+        },
+        "renditCode.validateClasses": {
+          "type": "boolean",
+          "default": false,
+          "description": "Проверять классы RenDit Code и показывать неизвестные классы в диагностике VS Code"
         }
       }
     },

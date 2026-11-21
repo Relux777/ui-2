@@ -376,7 +376,15 @@ const completionProvider = {
 // CSS одного класса без шапки файла и обёртки @layer
 function cssFor(project, cls) {
   if (!project.generator.isValid(cls)) return null;
-  const { css } = project.generator.generate([cls]);
+  let css;
+  try {
+    ({ css } = project.generator.generate([cls]));
+  } catch (error) {
+    log.appendLine(
+      `[${project.root}] ✖ не удалось сгенерировать CSS для "${cls}": ${error?.stack ?? error}`,
+    );
+    return null;
+  }
   const lines = css
     .split("\n")
     .filter((l) => !l.startsWith("/*!") && !l.startsWith("@property"));
@@ -579,15 +587,23 @@ async function activate(context) {
       if (isToken || isPkg) projects.delete(root);
     }
   };
-  watcher.onDidChange(onChange);
-  watcher.onDidCreate(onChange);
-  watcher.onDidDelete(onChange);
-  context.subscriptions.push(watcher);
+  context.subscriptions.push(
+    watcher,
+    watcher.onDidChange(onChange),
+    watcher.onDidCreate(onChange),
+    watcher.onDidDelete(onChange),
+  );
 
   // прогреть движок заранее, чтобы первая подсказка была мгновенной
   for (const root of roots) getProject(root);
 }
 
-function deactivate() {}
+function deactivate() {
+  if (diagnostics) {
+    diagnostics.clear();
+    diagnostics.dispose();
+  }
+}
+
 
 module.exports = { activate, deactivate };
