@@ -1,0 +1,19 @@
+// components/_glass.scss
+// .liquid-glass — «жидкое стекло» для плавающих панелей: нижнее меню, быстрое меню, плашки поверх фото.
+// Без SVG-фильтров — работает везде, в т. ч. на iPhone. Из чего стекло — tools/_glass.scss (миксин liquid-glass).
+// Форму и размеры задают классы рядом: <div class="liquid-glass relative br-full p-5">.
+// Элементу нужен position — светлая кромка рисуется ::before поверх.
+@use "../tools/glass";
+
+@layer components {
+  .liquid-glass {
+    @include glass.liquid-glass($tint: 38%);
+
+    // Старые телефоны (60 Гц): полное размытие 14px с насыщением дорого — полегче, плавность важнее
+    // глубины. Не трогаем тех, кто попросил без прозрачности (миксин выше ставит backdrop-filter: none).
+    @media (width < 620px) and (prefers-reduced-transparency: no-preference) {
+      -webkit-backdrop-filter: blur(8px) saturate(150%) brightness(1.03);
+      backdrop-filter: blur(8px) saturate(150%) brightness(1.03);
+    }
+  }
+}

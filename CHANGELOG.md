@@ -1,0 +1,2 @@
+# Changelog — RenDit UI
+
