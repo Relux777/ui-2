@@ -131,7 +131,7 @@ function classStringBefore(doc, pos) {
   );
 
   // className="…  class='…  className={`…
-  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)$/.exec(
+  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)$/i.exec(
     before,
   );
   if (attr) return attr[2];
@@ -203,64 +203,174 @@ function baseItems(project) {
   return project.items;
 }
 
+function fuzzyScore(query, candidate) {
+  if (!query) return 0;
+
+  query = query.toLowerCase();
+  candidate = candidate.toLowerCase();
+
+
+  let previousIndex = -1;
+  let score = 0;
+
+  for (const char of query) {
+    const index = candidate.indexOf(char, previousIndex + 1);
+
+    if (index === -1) return -1;
+
+    // Чем ближе символы друг к другу, тем лучше совпадение.
+    if (previousIndex !== -1) {
+      score += index - previousIndex - 1;
+    } else {
+      score += index * 2;
+    }
+
+    // Небольшой бонус за непрерывное совпадение.
+    if (index === previousIndex + 1) {
+      score -= 2;
+    }
+
+    previousIndex = index;
+  }
+
+  return Math.max(0, score);
+}
+
+
 const completionProvider = {
   async provideCompletionItems(doc, pos) {
     const content = classStringBefore(doc, pos);
     if (content === null) return null;
+
     const project = await projectFor(doc);
     if (!project) return null;
 
     const token = content.split(/\s+/).pop() ?? "";
     const parts = project.splitTopLevel(token, ":");
+
     if (!parts) return null;
-    let prefix = parts.length > 1 ? `${parts.slice(0, -1).join(":")}:` : "";
-    if (parts[parts.length - 1].startsWith("!")) prefix += "!";
+
+    // Уже введённая цепочка вариантов.
+    let prefix =
+      parts.length > 1
+        ? `${parts.slice(0, -1).join(":")}:`
+        : "";
+
+    const currentPart = parts[parts.length - 1] ?? "";
+    const important = currentPart.startsWith("!");
+
+    // Ищем без !, но сохраняем его при вставке класса.
+    const query = important
+      ? currentPart.slice(1)
+      : currentPart;
+
+    if (important) {
+      prefix += "!";
+    }
 
     const full = tokenRangeAt(doc, pos);
+
     const range = new vscode.Range(
       pos.translate(0, -token.length),
       full.end.isAfter(pos) ? full.end : pos,
     );
+
     const { utilities, variants } = baseItems(project);
 
-    const make = (base, text) => {
-      const item = new vscode.CompletionItem(base.label, base.kind);
-      item.sortText = base.sortText;
+    // Создаём CompletionItem только после фильтрации.
+    // Это уменьшает количество лишних объектов при вводе.
+    const make = (base, text, score) => {
+      const item = new vscode.CompletionItem(
+        base.label,
+        base.kind,
+      );
+
+      item.sortText =
+        String(score).padStart(5, "0") + base.sortText;
+
       item.documentation = base.documentation;
       item.detail = base.detail;
       item.command = base.command;
+
       item.insertText = text;
       item.filterText = text;
       item.range = range;
-      item.renditClass = base.renditClass ? text : undefined;
+
+      if (base.renditClass) {
+        item.renditClass = text;
+      }
+
       return item;
     };
 
-    const list = [];
-    for (const v of variants)
-      list.push(make(v, `${prefix.replace(/!$/, "")}${v.renditVariant}:`));
-    for (const u of utilities) list.push(make(u, `${prefix}${u.renditClass}`));
-    return new vscode.CompletionList(list, false);
+    const matches = [];
+
+    // Варианты: hover:, focus:, md:, dark: и т.д.
+    for (const variant of variants) {
+      const name = variant.renditVariant;
+      const score = fuzzyScore(query, name);
+
+      if (score === -1) continue;
+
+      const insertText =
+        `${prefix.replace(/!$/, "")}${name}:`;
+
+      matches.push({
+        base: variant,
+        text: insertText,
+        score,
+      });
+    }
+
+    // Обычные классы: flex, grid, bg-red и т.д.
+    for (const utility of utilities) {
+      const name = utility.renditClass;
+      const score = fuzzyScore(query, name);
+
+      if (score === -1) continue;
+
+      const insertText = `${prefix}${name}`;
+
+      matches.push({
+        base: utility,
+        text: insertText,
+        score,
+      });
+    }
+
+    // Сначала лучшие совпадения.
+    matches.sort((a, b) => a.score - b.score);
+
+    const items = matches.map(({ base, text, score }) =>
+      make(base, text, score),
+    );
+
+    return new vscode.CompletionList(items, false);
   },
 
-  // CSS класса — лениво, только для выбранного пункта
+  // CSS класса генерируется только для выбранной подсказки.
   async resolveCompletionItem(item) {
     if (!item.renditClass) return item;
+
     const doc = vscode.window.activeTextEditor?.document;
     const project = doc && (await projectFor(doc));
+
     if (!project) return item;
+
     const css = cssFor(project, item.renditClass);
     if (!css) return item;
-    if (item.kind === vscode.CompletionItemKind.Color)
+
+    if (item.kind === vscode.CompletionItemKind.Color) {
       item.detail = oneLine(css);
-    else
-      item.documentation = new vscode.MarkdownString().appendCodeblock(
-        css,
-        "css",
-      );
+    } else {
+      item.documentation = new vscode.MarkdownString()
+        .appendCodeblock(css, "css");
+    }
+
     return item;
   },
 };
+
 
 // CSS одного класса без шапки файла и обёртки @layer
 function cssFor(project, cls) {
@@ -305,7 +415,7 @@ const hoverProvider = {
 // ── Образцы цвета ─────────────────────────────────────────────────────────────
 function classStrings(text) {
   const out = [];
-  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)\1/g;
+  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)\1/gi;
   for (const m of text.matchAll(attr))
     out.push({ start: m.index + m[0].indexOf(m[1]) + 1, value: m[2] });
   const fns = classFunctions().map(escapeRe).join("|");
