@@ -82,8 +82,9 @@ export default function SearchComponent() {
       className={[
         'flex items-center shrink-0',
         'br-full h-36 overflow-hidden',
+        
         'transition-[width,background-color]',
-        'duration-300 ease-out',
+        'duration-200 ease-out',
         'motion-reduce:transition-none',
         isOpen
           ? 'w-240 max-sm:w-240 bg-foreground/5'

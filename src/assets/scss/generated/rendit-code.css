@@ -1,4 +1,5 @@
 /*! RenDit Code v0.1.0 | RenDit UI | сгенерировано из классов в исходниках, не редактировать */
+@property --rd-content { syntax: "*"; inherits: false; initial-value: ""; }
 @layer utilities {
   .pointer-events-auto {
     pointer-events: auto;
@@ -39,6 +40,9 @@
   .grid {
     display: grid;
   }
+  .inline {
+    display: inline;
+  }
   .size-28 {
     width: 28px;
     height: 28px;
@@ -47,8 +51,8 @@
     width: 36px;
     height: 36px;
   }
-  .w-124 {
-    width: 124px;
+  .w-113 {
+    width: 113px;
   }
   .w-131 {
     width: 131px;
@@ -61,6 +65,9 @@
   }
   .w-44 {
     width: 44px;
+  }
+  .w-64 {
+    width: 64px;
   }
   .w-full {
     width: 100%;
@@ -151,9 +158,6 @@
   .p-4 {
     padding: 4px;
   }
-  .px-16 {
-    padding-inline: 16px;
-  }
   .font-12 {
     font-size: calc(12px * var(--text-scale, 1));
   }
@@ -199,11 +203,6 @@
   .outline-none {
     outline-style: none;
   }
-  .transition-\[background-color\,backdrop-filter\,box-shadow\,width\] {
-    transition-property: background-color,backdrop-filter,box-shadow,width;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
   .transition-\[color\,scale\] {
     transition-property: color,scale;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -219,13 +218,8 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
-  .transition-\[opacity\,scale\] {
-    transition-property: opacity,scale;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
-  .transition-\[width\,background-color\,backdrop-filter\,box-shadow\,scale\] {
-    transition-property: width,background-color,backdrop-filter,box-shadow,scale;
+  .transition-\[opacity\,scale\,width\] {
+    transition-property: opacity,scale,width;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
@@ -234,8 +228,13 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
-  .transition-\[width\,opacity\,visibility\,background-color\,backdrop-filter\,box-shadow\,scale\] {
-    transition-property: width,opacity,visibility,background-color,backdrop-filter,box-shadow,scale;
+  .transition-\[width\,opacity\,scale\] {
+    transition-property: width,opacity,scale;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  .transition-\[width\] {
+    transition-property: width;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
@@ -250,20 +249,23 @@
   .duration-200 {
     transition-duration: 200ms;
   }
-  .duration-250 {
-    transition-duration: 250ms;
-  }
-  .duration-300 {
-    transition-duration: 300ms;
-  }
   [data-search] .\[\[data-search\]_\&\]\:pointer-events-none {
     pointer-events: none;
   }
   .\[\&\:\:-webkit-search-cancel-button\]\:hidden::-webkit-search-cancel-button {
     display: none;
   }
+  [data-scrolled] .\[\[data-scrolled\]_\&\]\:w-0 {
+    width: 0;
+  }
+  [data-scrolled] .\[\[data-scrolled\]_\&\]\:w-36 {
+    width: 36px;
+  }
   [data-scrolled] .\[\[data-scrolled\]_\&\]\:w-44 {
     width: 44px;
+  }
+  [data-scrolled] .\[\[data-scrolled\]_\&\]\:w-85 {
+    width: 85px;
   }
   [data-search] .\[\[data-search\]_\&\]\:w-248 {
     width: 248px;
@@ -283,11 +285,8 @@
   [data-scrolled] .\[\[data-scrolled\]_\&\]\:shadow-9 {
     box-shadow: var(--shadow-9);
   }
-  :is([data-scrolled],[data-search]) .\[\:is\(\[data-scrolled\]\,\[data-search\]\)_\&\]\:backdrop-blur-12 {
-    backdrop-filter: blur(12px);
-  }
-  [data-scrolled] .\[\[data-scrolled\]_\&\]\:backdrop-blur-4 {
-    backdrop-filter: blur(4px);
+  [data-scroll-init] .\[\[data-scroll-init\]_\&\]\:transition-none {
+    transition-property: none;
   }
   @media (hover: hover) and (pointer: fine) {
     .hover\:text-foreground:hover {
@@ -356,6 +355,62 @@
     }
     [data-search] .\[\[data-search\]_\&\]\:max-sm\:opacity-0 {
       opacity: 0;
+    }
+  }
+  .before\:pointer-events-none::before {
+    pointer-events: none;
+    content: var(--rd-content);
+  }
+  .before\:fixed::before {
+    position: fixed;
+    content: var(--rd-content);
+  }
+  .before\:inset-x-0::before {
+    inset-inline: 0;
+    content: var(--rd-content);
+  }
+  .before\:top-0::before {
+    top: 0;
+    content: var(--rd-content);
+  }
+  .before\:-z-2::before {
+    z-index: -2;
+    content: var(--rd-content);
+  }
+  .before\:h-90::before {
+    height: 90px;
+    content: var(--rd-content);
+  }
+  .before\:bg-\[linear-gradient\(to_bottom\,var\(--background\)_0\%\,color-mix\(in_oklab\,var\(--background\)_60\%\,transparent\)_50\%\,transparent_100\%\)\]::before {
+    background-image: linear-gradient(to bottom,var(--background) 0%,color-mix(in oklab,var(--background) 60%,transparent) 50%,transparent 100%);
+    content: var(--rd-content);
+  }
+  .before\:opacity-0::before {
+    opacity: 0;
+    content: var(--rd-content);
+  }
+  .before\:transition-opacity::before {
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    content: var(--rd-content);
+  }
+  .before\:duration-200::before {
+    transition-duration: 200ms;
+    content: var(--rd-content);
+  }
+  [data-scrolled] .\[\[data-scrolled\]_\&\]\:before\:opacity-100::before {
+    opacity: 1;
+    content: var(--rd-content);
+  }
+  [data-scroll-init] .\[\[data-scroll-init\]_\&\]\:before\:transition-none::before {
+    transition-property: none;
+    content: var(--rd-content);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .motion-reduce\:before\:transition-none::before {
+      transition-property: none;
+      content: var(--rd-content);
     }
   }
   .placeholder\:text-foreground-subtle::placeholder {

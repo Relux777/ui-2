@@ -1,9 +1,10 @@
-
+// biome-ignore-all lint/security/noDangerouslySetInnerHtml: Trusted inline bootstrap scripts generated exclusively from local constants.
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import HeaderComponent from "@/components/header";
 import NavBarComponent from "@/components/navbar";
+import BackgroundComponent from "@/components/background";
 
 import { SCROLL_SCRIPT } from "@/config/scroll-state";
 import { TEXT_SIZE_SCRIPT } from "@/config/text-size";
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <HeaderComponent />
           {children}
           <NavBarComponent />
+          <BackgroundComponent />
         </ThemeProvider>
       </body>
     </html>

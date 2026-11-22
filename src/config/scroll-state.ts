@@ -1,5 +1,4 @@
 
-// Hysteresis thresholds (px)
 export const SCROLL_THRESHOLD_ON = 20;
 export const SCROLL_THRESHOLD_OFF = 8;
 
@@ -13,7 +12,12 @@ export function watchScroll(
   }
 
   const root = w.document.documentElement;
-  let isScrolled = root.hasAttribute('data-scrolled');
+
+  let isScrolled = false;
+  let initialized = false;
+
+  // До первой синхронизации запрещаем анимации шапки.
+  root.setAttribute('data-scroll-init', '');
 
   function update() {
     const y = Math.max(0, w.scrollY);
@@ -25,10 +29,36 @@ export function watchScroll(
     root.toggleAttribute('data-scrolled', next);
   }
 
-  w.addEventListener('scroll', update);
-  w.addEventListener('pageshow', update);
+  function finishInitialization() {
+    if (initialized) return;
 
+    initialized = true;
+
+    w.requestAnimationFrame(() => {
+      update();
+
+      w.requestAnimationFrame(() => {
+        root.removeAttribute('data-scroll-init');
+      });
+    });
+  }
+
+  function handlePageShow() {
+    // Повторная синхронизация при возврате из BFCache
+    // и восстановлении страницы браузером.
+    initialized = false;
+    root.setAttribute('data-scroll-init', '');
+
+    update();
+    finishInitialization();
+  }
+
+  // Синхронно устанавливаем состояние до появления шапки.
   update();
+  finishInitialization();
+
+  w.addEventListener('scroll', update, { passive: true });
+  w.addEventListener('pageshow', handlePageShow);
 }
 
 export const SCROLL_SCRIPT =
