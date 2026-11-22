@@ -12,8 +12,8 @@ export default function HeaderComponent() {
     <header
       className={[
         'sticky z-30',
-        'top-[calc(5px+env(safe-area-inset-top))]',
-        'mt-[env(safe-area-inset-top)]',
+        'top-[calc(0px+env(safe-area-inset-top))]',
+        'mt-[env(safe-area-inset-top)] py-4',
 
         'before:fixed before:inset-x-0 before:top-0',
         'before:h-90 before:-z-2',

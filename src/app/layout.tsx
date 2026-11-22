@@ -46,7 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ru" className={googleSans.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="ru" className={`${googleSans.variable} overflow-x-clip`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
       </head>

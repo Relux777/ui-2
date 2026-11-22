@@ -1,7 +1,8 @@
 // RenDit Code IntelliSense — расширение VS Code.
 //
 // Что делает:
-//   • автодополнение классов и вариантов (hover:, md:, dark: …) в className="…", class="…", cn("…") и т.п.;
+//   • автодополнение классов и вариантов (hover:, md:, dark: …) в className="…", class="…",
+//     className={["…", "…"].join(" ")}, cn("…") и т.п.;
 //   • при наведении на класс — CSS, который сгенерирует движок;
 //   • образцы цвета рядом с bg-…, text-…, border-… (значения токенов светлой темы).
 //
@@ -136,6 +137,41 @@ function classStringBefore(doc, pos) {
     before,
   );
   if (attr) return attr[2];
+
+  // className={["flex", "gap-…"].join(" ")}
+  const arrayStart = /\bclassName\s*=\s*\{\s*\[/g;
+  let arrayMatch;
+  let lastArrayMatch;
+  while ((arrayMatch = arrayStart.exec(before))) lastArrayMatch = arrayMatch;
+  if (lastArrayMatch) {
+    let depth = 1;
+    let quote = null;
+    let quoteStart = -1;
+    let escaped = false;
+    const start = lastArrayMatch.index + lastArrayMatch[0].length;
+
+    for (let i = start; i < before.length; i++) {
+      const ch = before[i];
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+        } else if (ch === "\\") {
+          escaped = true;
+        } else if (ch === quote) {
+          quote = null;
+        }
+      } else if (ch === "'" || ch === '"' || ch === "`") {
+        quote = ch;
+        quoteStart = i;
+      } else if (ch === "[") {
+        depth++;
+      } else if (ch === "]" && --depth === 0) {
+        break;
+      }
+    }
+
+    if (quote) return before.slice(quoteStart + 1);
+  }
 
   // cn("a", "b…  — открытый вызов, и курсор внутри строки
   const fns = classFunctions().map(escapeRe).join("|");
