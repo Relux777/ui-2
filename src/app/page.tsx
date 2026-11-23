@@ -5,8 +5,9 @@ export default function Home() {
   return (
     <main>
       <section>
-        <div className="container text-center pt-88 min-h-[calc(100dvh_-_56px)] max-sm:pt-40">
-            <div className={[
+        <div className="container flex flex-wrap items-end justify-center pt-88 min-h-[calc(100dvh_-_100px)] max-sm:pt-40">
+            <div className="text-center ">
+              <div className={[
                 'sticky',
                 'flex justify-center place-items-center',
                 'top-15 z-30 br-36 font-12 h-24 px-10 gap-7',
@@ -44,7 +45,8 @@ export default function Home() {
                >Документация</button>
 
             </div>
-            <div className="row gutter-20 text-left">
+            </div>
+            <div className="row gutter-20">
               <div className="col-12 sm:col-6 lg:col-3">
                 <h2 className="font-36/40 font-w-400 mb-10">Готовые компоненты для ваших проектов</h2>
                 <p className="text-gray-500 mb-10">Красивые, доступные и гибкие компоненты для создания современных интерфейсов.</p>
