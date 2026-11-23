@@ -2,15 +2,15 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
+import BackgroundComponent from "@/components/background";
 import HeaderComponent from "@/components/header";
 import NavBarComponent from "@/components/navbar";
-import BackgroundComponent from "@/components/background";
 
 import { SCROLL_SCRIPT } from "@/config/scroll-state";
 import { TEXT_SIZE_SCRIPT } from "@/config/text-size";
+import { THEME_COLOR_SCRIPT, THEME_COLORS, THEME_KEY } from "@/config/theme";
 
 import { ThemeProvider } from "@/providers/theme-provider";
-import { THEME_COLOR_SCRIPT, THEME_COLORS, THEME_KEY } from "@/config/theme";
 
 import "@/assets/scss/RenDit_UI.scss";
 import "@/assets/scss/generated/rendit-code.css";
@@ -46,12 +46,21 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ru" className={`${googleSans.variable} overflow-x-clip`} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang="ru"
+      className={`${googleSans.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
       </head>
       <body>
-        <script dangerouslySetInnerHTML={{__html: `${TEXT_SIZE_SCRIPT};${SCROLL_SCRIPT};`,}} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `${TEXT_SIZE_SCRIPT};${SCROLL_SCRIPT};`,
+          }}
+        />
         <ThemeProvider storageKey={THEME_KEY}>
           <HeaderComponent />
           {children}

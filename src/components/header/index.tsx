@@ -47,6 +47,7 @@ export default function HeaderComponent() {
                 'hover:opacity-85 active:scale-95',
 
                 '[[data-scrolled]_&]:shadow-9',
+                '[[data-scrolled]_&]:backdrop-blur-4',
                 '[[data-scrolled]_&]:bg-background/50',
                 '[[data-scrolled]_&]:w-44',
               ].join(' ')}
@@ -71,7 +72,7 @@ export default function HeaderComponent() {
               className={[
                 'grid place-items-center',
                 'w-44 h-24 br-36 font-12',
-                'overflow-hidden bg-violet-500',
+                'overflow-hidden bg-violet-500 text-white',
 
                 'transition-[opacity,scale, width, heigth]',
                 'duration-200 ease-out',
@@ -118,6 +119,7 @@ export default function HeaderComponent() {
               '[[data-search]_&]:flex-none',
 
               '[:is([data-scrolled],[data-search])_&]:shadow-glass',
+              '[:is([data-scrolled],[data-search])_&]:backdrop-blur-4',
               '[:is([data-scrolled],[data-search])_&]:bg-background/50',
             ].join(' ')}
           >
@@ -190,6 +192,7 @@ export default function HeaderComponent() {
 
               '[[data-scrolled]_&]:shadow-9',
               '[[data-scrolled]_&]:bg-background/50',
+              '[[data-scrolled]_&]:backdrop-blur-4',
 
               '[[data-search]_&]:max-sm:w-0',
               '[[data-search]_&]:max-sm:opacity-0',

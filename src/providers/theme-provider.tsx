@@ -1,28 +1,24 @@
 "use client";
 
-// Тема сайта: next-themes ставит data-theme на <html> до первой отрисовки (CSS-переменные тем — settings/).
-// Здесь же — цвет панели браузера и строки состояния на телефоне: метатеги из layout знают только системную тему,
-// а ThemeColor перекрашивает их в тему, выбранную кнопкой. Один раз на сайт, а не в каждой кнопке темы.
-
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { type ComponentProps, useEffect } from "react";
 import { THEME_COLORS } from "@/config/theme";
 
 function useSuppressScriptTagWarning() {
   useEffect(() => {
-    // предупреждение next-themes + React 19 бывает только в dev; в проде console не трогаем
-    if (process.env.NODE_ENV === "production") return;
+
+    if (typeof window === "undefined" || process.env.NODE_ENV === "production") return;
 
     const originalError = console.error;
 
     console.error = (...args: unknown[]) => {
       if (
         typeof args[0] === "string" &&
-        args[0].includes("Encountered a script tag while rendering")
+        args[0].includes("Encountered a script tag")
       ) {
         return;
       }
-      originalError(...args);
+      originalError.apply(console, args);
     };
 
     return () => {
