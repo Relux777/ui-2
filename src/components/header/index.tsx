@@ -1,11 +1,13 @@
-
 import Link from 'next/link';
 
+import ChevronRightSVG from '@/assets/svg/chevron-right.svg';
 import GitHubSVG from '@/assets/svg/github.svg';
 import LogoSVG from '@/assets/svg/logo.svg';
-import ChevronRightSVG from '@/assets/svg/chevron-right.svg';
 
+import { Spotlight } from "@/components/ui/Spotlight"; 
 import SearchComponent from './SearchComponent';
+
+const SPOT = "hidden [:is([data-scrolled],[data-search])_&]:block";
 
 export default function HeaderComponent() {
   return (
@@ -23,7 +25,7 @@ export default function HeaderComponent() {
         'before:transition-opacity before:duration-200',
 
         '[[data-scroll-init]_&]:before:transition-none',
-
+        '[[data-search]_&]:z-40',
         '[[data-scrolled]_&]:before:opacity-100',
 
         'motion-reduce:before:transition-none',
@@ -123,6 +125,7 @@ export default function HeaderComponent() {
               '[:is([data-scrolled],[data-search])_&]:bg-background/50',
             ].join(' ')}
           >
+            <Spotlight className={SPOT} />
             <SearchComponent />
 
             <Link
@@ -167,7 +170,7 @@ export default function HeaderComponent() {
                     width={20}
                     height={20}
                     aria-hidden="true"
-                />
+                  />
               </div>
             </Link>
           </div>
