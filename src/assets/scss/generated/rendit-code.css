@@ -90,9 +90,6 @@
   .my-20 {
     margin-block: 20px;
   }
-  .mt-\[env\(safe-area-inset-top\)\] {
-    margin-top: env(safe-area-inset-top);
-  }
   .mr-4 {
     margin-right: 4px;
   }
@@ -548,6 +545,9 @@
   @media (width < 620px) {
     .max-sm\:relative {
       position: relative;
+    }
+    .max-sm\:z-10 {
+      z-index: 10;
     }
     .max-sm\:hidden {
       display: none;

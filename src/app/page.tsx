@@ -11,8 +11,8 @@ export default function Home() {
                 'shadow-glass backdrop-blur-4',
                 'm-auto w-fit',
 
-                'max-sm:relative'
-                
+                'max-sm:relative',
+                'max-sm:z-10'
               ].join(' ')}>
               <span className="w-5 h-5 bg-violet-500 br-full"></span>
               <span>RenDit UI — свой движок классов</span>
