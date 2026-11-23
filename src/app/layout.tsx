@@ -1,4 +1,4 @@
-// biome-ignore-all lint/security/noDangerouslySetInnerHtml: Trusted inline bootstrap scripts generated exclusively from local constants.
+
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
@@ -53,10 +53,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: свой постоянный скрипт без пользовательских данных
+          dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }}
+        />
       </head>
       <body>
+        
         <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: свой постоянный скрипт без пользовательских данных
           dangerouslySetInnerHTML={{
             __html: `${TEXT_SIZE_SCRIPT};${SCROLL_SCRIPT};`,
           }}
