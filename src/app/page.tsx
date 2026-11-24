@@ -1,12 +1,17 @@
+
 import Link from "next/link";
+
 import ChevronRightSVG from '@/assets/svg/chevron-right.svg';
+import TachometerSVG from '@/assets/svg/tachometer-alt.svg';
+import { Spotlight } from "@/components/ui/Spotlight"; 
+import { ThemeToggleComponent } from "@/components/ui/ThemeToggle";
+import OTPInput from "@/components/ui/OTPinput";
 
 export default function Home() {
   return (
     <main>
       <section>
-        <div className="container flex flex-wrap items-end justify-center pt-88 min-h-[calc(100dvh_-_100px)] max-sm:pt-40">
-            <div className="text-center ">
+        <div className="container pt-88 pb-100 max-sm:pt-40 text-center">
               <div className={[
                 'sticky',
                 'flex justify-center place-items-center',
@@ -15,7 +20,8 @@ export default function Home() {
                 'm-auto w-fit',
 
                 'max-sm:relative',
-                'max-sm:z-10'
+                'max-sm:z-10',
+                'max-sm:bg-background/50'
               ].join(' ')}>
               <span className="w-5 h-5 bg-violet-500 br-full"></span>
               <span>RenDit UI — свой движок классов</span>
@@ -43,88 +49,201 @@ export default function Home() {
                 'hover:bg-surface-muted/50 active:scale-95'
               ].join(' ')}
                >Документация</button>
-
             </div>
-            </div>
-            <div className="row gutter-20">
-              <div className="col-12 sm:col-6 lg:col-3">
-                <h2 className="font-36/40 font-w-400 mb-10">Готовые компоненты для ваших проектов</h2>
-                <p className="text-gray-500 mb-10">Красивые, доступные и гибкие компоненты для создания современных интерфейсов.</p>
-                <button type="button" className="liquid-glass p-10 br-full">Перейти к компонентам</button>
-              </div>
-              <div className="col-12 sm:col-6 lg:col-3">
-                <Link href='/' className="p-20 shadow-7 br-36 w-full block">
-                  <div className="flex justify-between ">
-                    <div>
-                      <h3 className="mb-7 font-20 font-w-400">Кнопки</h3>
-                      <p className="text-gray-500">Гибкие кнопки <br /> для любых задач</p>
-                    </div>
-                    <button type="button" className="grid place-items-center shrink-0 size-36 bg-surface-muted/50 br-full">
-                      <ChevronRightSVG
-                        width={20}
-                        height={20}
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                  <div className="flex gap-10 mt-10">
-                      <button type="button" className="flex-1 shadow-8 p-10 br-full">Пример 1</button>
-                      <button type="button" className="flex-1 shadow-7 p-10 br-full">Пример 2</button>
-                  </div>
-                </Link>
-              </div>
-              <div className="col-12 sm:col-6 lg:col-3">
-                <Link href='/' className="p-20 shadow-7 br-36 w-full block">
-                  <div className="flex justify-between ">
-                    <div>
-                      <h3 className="mb-7 font-20 font-w-400">Кнопки</h3>
-                      <p className="text-gray-500">Гибкие кнопки <br /> для любых задач</p>
-                    </div>
-                    <button type="button" className="grid place-items-center shrink-0 size-36 bg-surface-muted/50 br-full">
-                      <ChevronRightSVG
-                        width={20}
-                        height={20}
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                  <div className="flex gap-10 mt-10">
-                      <button type="button" className="flex-1 shadow-8 p-10 br-full">Пример 1</button>
-                      <button type="button" className="flex-1 shadow-7 p-10 br-full">Пример 2</button>
-                  </div>
-                </Link>
-              </div>
-              <div className="col-12 sm:col-6 lg:col-3">
-                <Link href='/' className="p-20 shadow-7 br-36 w-full block">
-                  <div className="flex justify-between ">
-                    <div>
-                      <h3 className="mb-7 font-20 font-w-400">Кнопки</h3>
-                      <p className="text-gray-500">Гибкие кнопки <br /> для любых задач</p>
-                    </div>
-                    <button type="button" className="grid place-items-center shrink-0 size-36 bg-surface-muted/50 br-full">
-                      <ChevronRightSVG
-                        width={20}
-                        height={20}
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                  <div className="flex gap-10 mt-10">
-                      <button type="button" className="flex-1 shadow-8 p-10 br-full">Пример 1</button>
-                      <button type="button" className="flex-1 shadow-7 p-10 br-full">Пример 2</button>
-                  </div>
-                </Link>
-              </div>
-              
-            </div>
-              
-
-            
         </div>
       </section>
+
+      <section>
+        <div className="container mb-40">
+          <div className="row gutter-20 text-center">
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+              <div className="col-12 md:col-6 lg:col-2 mb-20">
+                <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
+                  <TachometerSVG
+                    width={40}
+                    height={40}
+                    aria-hidden="true"
+                    className="fill-violet-500 m-auto"
+                  />
+                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <p className="text-gray-400">Гибкая система стилей</p>
+                </div>
+              </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <div className="row gutter-20">
+              <div className="col-12 sm:col-6 lg:col-3 max-sm:text-center max-sm:mt-40">
+                <h2 className="font-36/40 font-w-400 mb-10">Готовые компоненты для ваших проектов</h2>
+                <p className="text-gray-500 mb-10">Красивые, доступные и гибкие компоненты для создания современных интерфейсов.</p>
+                <button type="button" className="bg-background shadow-8 border-solid p-10 br-full transition-[scale, opacity] duration-200 ease-out hover:opacity-80 active:scale-95 ">Перейти к компонентам</button>
+              </div>
+              <div className="col-12 sm:col-6 lg:col-3">
+                <Link href='/' className="relative group p-20 shadow-7 br-36 w-full block isolate bg-background">
+                <Spotlight />
+                  <div className="flex justify-between ">
+                    <div>
+                      <h3 className="mb-7 font-20 font-w-400">Кнопки</h3>
+                      <p className="text-gray-500">Гибкие кнопки <br /> для любых задач</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={[
+                        "grid place-items-center shrink-0 size-36",
+                        "bg-surface-muted/50 br-full border",
+                        "transition-colors duration-200",
+                        "group-hover:bg-surface-muted/70",
+                      ].join(" ")}
+                    >
+                      <ChevronRightSVG
+                        width={20}
+                        height={20}
+                        aria-hidden="true"
+                        className="transition-colors duration-200 group-hover:fill-violet-500"
+                      />
+                    </button>
+                  </div>
+                  <div className="flex gap-10 mt-10">
+                      <button type="button" className="flex-1 inline-flex items-center justify-center gap-8 h-44 px-20 br-full font-13 font-w-600 select-none transition-[background-color,border-color,color,box-shadow,translate,scale] duration-200 ease-out motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary active:scale-97 border border-secondary text-secondary bg-[linear-gradient(90deg,var(--secondary)_50%,transparent_50%)] bg-[size:210%_100%] bg-[position:100%_0] transition-[background-position,color] duration-500 ease-out hover:bg-[position:0%_0] hover:text-secondary-foreground">Заливка</button>
+                      <button type="button" className="flex-1 inline-flex items-center justify-center gap-8 h-44 px-20 br-full font-13 font-w-600 select-none transition-[background-color,border-color,color,box-shadow,translate,scale] duration-200 ease-out motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary active:scale-97 liquid-glass text-foreground hover:bg-white/10">Стекло</button>
+                  </div>
+                </Link>
+              </div>
+              
+              <div className="col-12 sm:col-6 lg:col-3">
+                <Link href='/' className="relative group p-20 shadow-7 br-36 w-full block isolate bg-background ">
+                <Spotlight />
+                  <div className="flex justify-between ">
+                    <div>
+                      <h3 className="mb-7 font-20 font-w-400">Коды</h3>
+                      <p className="text-gray-500">Ввод символов<br /> для доступа</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={[
+                        "grid place-items-center shrink-0 size-36",
+                        "bg-surface-muted/50 br-full border",
+                        "transition-colors duration-200",
+                        "group-hover:bg-surface-muted/70",
+                      ].join(" ")}
+                    >
+                      <ChevronRightSVG
+                        width={20}
+                        height={20}
+                        aria-hidden="true"
+                        className="transition-colors duration-200 group-hover:fill-violet-500"
+                      />
+                    </button>
+                  </div>
+                  <div className="flex gap-10 mt-10">
+                      <OTPInput />
+                  </div>
+                </Link>
+              </div>
+
+              <div className="col-12 sm:col-6 lg:col-3">
+                <Link href='/' className="relative group p-20 shadow-7 br-36 w-full block isolate bg-background">
+                <Spotlight />
+                  <div className="flex justify-between">
+                    <div>
+                      <h3 className="mb-7 font-20 font-w-400">Тема</h3>
+                      <p className="text-gray-500">
+                        Смена режима <br />в один клик
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className={[
+                        "grid place-items-center shrink-0 size-36",
+                        "bg-surface-muted/50 br-full border",
+                        "transition-colors duration-200",
+                        "group-hover:bg-surface-muted/70",
+                      ].join(" ")}
+                    >
+                      <ChevronRightSVG
+                        width={20}
+                        height={20}
+                        aria-hidden="true"
+                        className="transition-colors duration-200 group-hover:fill-violet-500"
+                      />
+                    </button>
+                  </div>
+                  <div className="flex gap-10 mt-10">
+                    <ThemeToggleComponent />
+                  </div>
+                </Link>
+              </div>
+              
+            </div>
+        </div>
+      </section>
+
       <section>
         <div className="h-1000">beta</div>
       </section>
+
     </main>
   );
 }

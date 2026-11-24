@@ -96,7 +96,7 @@ export default function NavBarComponent() {
           aria-label="Основное меню"
           {...bind}
           style={{ "--nb-i": shown } as CSSProperties}
-          className={`${styles.bar} liquid-glass relative [--nb-w:68px] max-[380px]:[--nb-w:50px] [--nb-pad:5px] p-(--nb-pad) br-full touch-pan-y select-none`}
+          className={`${styles.bar} liquid-glass relative [--nb-w:68px] max-[380px]:[--nb-w:50px] [--nb-pad:5px] p-(--nb-pad) br-full touch-pan-y select-none [[data-weak]_&]:[backdrop-filter:none] [[data-weak]_&]:bg-background/85`}
         >
           <ul className={`${styles.track} flex`}>
             {ITEMS.map((item, i) => {

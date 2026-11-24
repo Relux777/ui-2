@@ -40,6 +40,7 @@ export default function BackgroundComponent() {
             ].join(' ')}
           />
         </div>
+        
     </>
   );
 }

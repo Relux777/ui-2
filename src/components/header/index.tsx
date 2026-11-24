@@ -51,6 +51,8 @@ export default function HeaderComponent() {
                 '[[data-scrolled]_&]:shadow-9',
                 '[[data-scrolled]_&]:backdrop-blur-4',
                 '[[data-scrolled]_&]:bg-background/50',
+                '[[data-weak]_&]:[backdrop-filter:none]',
+                '[[data-weak]_&]:bg-background/85',
                 '[[data-scrolled]_&]:w-44',
               ].join(' ')}
             >
@@ -109,7 +111,7 @@ export default function HeaderComponent() {
             className={[
               'flex items-center justify-between',
               'gap-5 p-4 h-44 br-full w-113',
-              'overflow-hidden',
+              'overflow-hidden isolate',
 
               'transition-[width,background-color]',
               'duration-200 ease-out',
@@ -123,6 +125,8 @@ export default function HeaderComponent() {
               '[:is([data-scrolled],[data-search])_&]:shadow-glass',
               '[:is([data-scrolled],[data-search])_&]:backdrop-blur-4',
               '[:is([data-scrolled],[data-search])_&]:bg-background/50',
+              '[[data-weak]_&]:[backdrop-filter:none]',
+              '[[data-weak]_&]:bg-background/85',
             ].join(' ')}
           >
             <Spotlight className={SPOT} />
@@ -196,6 +200,8 @@ export default function HeaderComponent() {
               '[[data-scrolled]_&]:shadow-9',
               '[[data-scrolled]_&]:bg-background/50',
               '[[data-scrolled]_&]:backdrop-blur-4',
+              '[[data-weak]_&]:[backdrop-filter:none]',
+              '[[data-weak]_&]:bg-background/85',
 
               '[[data-search]_&]:max-sm:w-0',
               '[[data-search]_&]:max-sm:opacity-0',

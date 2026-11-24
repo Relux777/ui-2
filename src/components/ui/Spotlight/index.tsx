@@ -1,8 +1,5 @@
-"use client";
 
-// «Прожектор» (класс .spotlight, RenDit SCSS components/_spotlight.scss): мягкое пятно света по стеклу
-// и подсвеченный кусок кромки идут за курсором. Кладётся внутрь элемента с relative и isolate. Только для мыши/трекпада (на телефоне курсора нет).
-// Координаты пишутся в --mx/--my родителя раз в кадр, плавность даёт CSS.
+"use client";
 
 import { useEffect, useRef } from "react";
 
@@ -11,39 +8,87 @@ export function Spotlight({ className = "" }: { className?: string }) {
 
   useEffect(() => {
     const host = ref.current?.parentElement;
-    if (!host || !matchMedia("(hover: hover) and (pointer: fine)").matches)
+
+    if (
+      !host ||
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) {
       return;
+    }
+
     let frame = 0;
-    let x = 0;
-    let y = 0;
+    let clientX = 0;
+    let clientY = 0;
+    let active = false;
+
     const paint = () => {
       frame = 0;
-      host.style.setProperty("--mx", `${x}px`);
-      host.style.setProperty("--my", `${y}px`);
+
+      if (!active) return;
+
+      const rect = host.getBoundingClientRect();
+
+      host.style.setProperty("--mx", `${clientX - rect.left}px`);
+      host.style.setProperty("--my", `${clientY - rect.top}px`);
     };
-    const onMove = (e: PointerEvent) => {
-      const r = host.getBoundingClientRect();
-      x = e.clientX - r.left;
-      y = e.clientY - r.top;
-      if (!frame) frame = requestAnimationFrame(paint);
+
+    const schedulePaint = () => {
+      if (!frame) {
+        frame = requestAnimationFrame(paint);
+      }
     };
-    const onEnter = (e: PointerEvent) => {
-      onMove(e);
+
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+
+      clientX = event.clientX;
+      clientY = event.clientY;
+
+      schedulePaint();
+    };
+
+    const onEnter = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+
+      active = true;
+      onMove(event);
       host.dataset.spot = "";
     };
-    const onLeave = () => host.removeAttribute("data-spot");
+
+    const onLeave = () => {
+      active = false;
+      host.removeAttribute("data-spot");
+
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
     host.addEventListener("pointerenter", onEnter);
     host.addEventListener("pointermove", onMove);
     host.addEventListener("pointerleave", onLeave);
+
     return () => {
       host.removeEventListener("pointerenter", onEnter);
       host.removeEventListener("pointermove", onMove);
       host.removeEventListener("pointerleave", onLeave);
-      cancelAnimationFrame(frame);
+
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+
+      host.removeAttribute("data-spot");
+      host.style.removeProperty("--mx");
+      host.style.removeProperty("--my");
     };
   }, []);
 
   return (
-    <span ref={ref} className={`spotlight ${className}`} aria-hidden="true" />
+    <span
+      ref={ref}
+      className={`spotlight ${className}`}
+      aria-hidden="true"
+    />
   );
 }

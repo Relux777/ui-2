@@ -9,6 +9,7 @@ import NavBarComponent from "@/components/navbar";
 import { SCROLL_SCRIPT } from "@/config/scroll-state";
 import { TEXT_SIZE_SCRIPT } from "@/config/text-size";
 import { THEME_COLOR_SCRIPT, THEME_COLORS, THEME_KEY } from "@/config/theme";
+import { WEAK_SCRIPT } from "@/config/weak";
 
 import { ThemeProvider } from "@/providers/theme-provider";
 
@@ -63,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: свой постоянный скрипт без пользовательских данных
           dangerouslySetInnerHTML={{
-            __html: `${TEXT_SIZE_SCRIPT};${SCROLL_SCRIPT};`,
+            __html: `${TEXT_SIZE_SCRIPT};${SCROLL_SCRIPT};${WEAK_SCRIPT};`,
           }}
         />
         <ThemeProvider storageKey={THEME_KEY}>
