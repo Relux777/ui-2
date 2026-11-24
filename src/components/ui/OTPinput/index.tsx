@@ -4,9 +4,10 @@
 import { useRef, useState } from 'react';
 
 const LENGTH = 4;
+const POSITIONS = Array.from({ length: LENGTH }, (_, i) => i);
 
 export default function OTPInput() {
-  const [code, setCode] = useState<string[]>(Array(LENGTH).fill(''));
+  const [code, setCode] = useState<string[]>(() => Array(LENGTH).fill(''));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const focusInput = (index: number) => {
@@ -26,16 +27,13 @@ export default function OTPInput() {
 
     const next = [...code];
 
-    // Поддержка вставки сразу нескольких цифр
     digits.split('').forEach((digit, i) => {
       const position = index + i;
       if (position < LENGTH) next[position] = digit;
     });
 
     setCode(next);
-
-    const nextIndex = Math.min(index + digits.length, LENGTH - 1);
-    focusInput(nextIndex);
+    focusInput(Math.min(index + digits.length, LENGTH - 1));
   };
 
   const handleKeyDown = (
@@ -43,18 +41,20 @@ export default function OTPInput() {
     index: number,
   ) => {
     if (e.key === 'Backspace') {
+      e.preventDefault();
+
+      const next = [...code];
+
       if (code[index]) {
-        const next = [...code];
         next[index] = '';
         setCode(next);
       } else if (index > 0) {
-        const next = [...code];
         next[index - 1] = '';
         setCode(next);
         focusInput(index - 1);
       }
 
-      e.preventDefault();
+      return;
     }
 
     if (e.key === 'ArrowLeft' && index > 0) {
@@ -88,26 +88,26 @@ export default function OTPInput() {
   };
 
   return (
-    <div
-      role="group"
-      aria-label="Код подтверждения из четырёх цифр"
-      className="flex items-center gap-10"
-    >
-      {code.map((digit, index) => (
+    <fieldset className="flex items-center gap-10 border-0 p-0 m-0">
+      <legend className="sr-only">
+        Код подтверждения из четырёх цифр
+      </legend>
+
+      {POSITIONS.map((position) => (
         <input
-          key={index}
+          key={`otp-${position}`}
           ref={(el) => {
-            inputsRef.current[index] = el;
+            inputsRef.current[position] = el;
           }}
           type="text"
           inputMode="numeric"
-          autoComplete={index === 0 ? 'one-time-code' : 'off'}
+          autoComplete={position === 0 ? 'one-time-code' : 'off'}
           pattern="[0-9]*"
           maxLength={LENGTH}
-          value={digit}
-          aria-label={`Цифра ${index + 1} из ${LENGTH}`}
-          onChange={(e) => updateCode(e.target.value, index)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
+          value={code[position]}
+          aria-label={`Цифра ${position + 1} из ${LENGTH}`}
+          onChange={(e) => updateCode(e.target.value, position)}
+          onKeyDown={(e) => handleKeyDown(e, position)}
           onPaste={handlePaste}
           className={[
             'size-44 shrink-0',
@@ -120,10 +120,9 @@ export default function OTPInput() {
             'focus:border-secondary',
             'focus:shadow-[0_0_0_4px_color-mix(in_oklab,var(--secondary)_14%,transparent)]',
             'focus:outline-none',
-            'placeholder:text-muted',
           ].join(' ')}
         />
       ))}
-    </div>
+    </fieldset>
   );
 }
