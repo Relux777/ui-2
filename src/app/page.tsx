@@ -88,7 +88,7 @@ export default function Home() {
                     aria-hidden="true"
                     className="fill-violet-500 m-auto"
                   />
-                  <h3 className="mt-10 mb-5">Движок</h3>
+                  <h3 className="mt-10 mb-5">Движок 777</h3>
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
