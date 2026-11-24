@@ -56,7 +56,7 @@ export default function Home() {
       <section>
         <div className="container mb-40">
           <div className="row gutter-20 text-center">
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
@@ -68,7 +68,7 @@ export default function Home() {
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
@@ -80,7 +80,7 @@ export default function Home() {
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
@@ -92,7 +92,7 @@ export default function Home() {
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
@@ -104,7 +104,7 @@ export default function Home() {
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
@@ -116,7 +116,7 @@ export default function Home() {
                   <p className="text-gray-400">Гибкая система стилей</p>
                 </div>
               </div>
-              <div className="col-12 md:col-6 lg:col-2 mb-20">
+              <div className="col-6 md:col-6 lg:col-2 mb-20">
                 <div className="relative p-20 shadow-7 br-36 w-full block isolate bg-background cursor-pointer transition-transform duration-300 ease-out hover:translate-y-[-5px]">
                   <TachometerSVG
                     width={40}
