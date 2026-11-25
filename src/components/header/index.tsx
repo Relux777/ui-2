@@ -15,7 +15,7 @@ export default function HeaderComponent() {
       className={[
         'sticky z-30',
         'top-[calc(0px+env(safe-area-inset-top))]',
-        'py-4 isolate',
+        'isolate',
 
         'before:fixed before:inset-x-0 before:top-0',
         'before:h-90 before:-z-2',
@@ -31,7 +31,7 @@ export default function HeaderComponent() {
         'motion-reduce:before:transition-none',
       ].join(' ')}
     >
-      <nav className="container grid grid-cols-[1fr_auto_1fr] items-center h-48">
+      <nav className="container grid grid-cols-[1fr_auto_1fr] items-center h-60">
         <ul className="flex items-center justify-self-start gap-10">
           <li>
             <Link

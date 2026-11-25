@@ -1,13 +1,17 @@
 
 import Link from "next/link";
 
-import ChevronRightSVG from '@/assets/svg/chevron-right.svg';
 import TachometerSVG from '@/assets/svg/tachometer-alt.svg';
+import ChevronRightSVG from '@/assets/svg/chevron-right.svg';
+
 import { Spotlight } from "@/components/ui/Spotlight"; 
 import { ThemeToggleComponent } from "@/components/ui/ThemeToggle";
+
 import OTPInput from "@/components/ui/OTPinput";
 
+
 export default function Home() {
+
   return (
     <main>
       <section>
@@ -146,7 +150,7 @@ export default function Home() {
                   <div className="flex justify-between ">
                     <div>
                       <h3 className="mb-7 font-20 font-w-400">Кнопки</h3>
-                      <p className="text-gray-500">Гибкие кнопки <br /> для любых задач</p>
+                      <p className="text-gray-500">Гибкие кнопки для любых задач</p>
                     </div>
                     <button
                       type="button"
@@ -178,7 +182,7 @@ export default function Home() {
                   <div className="flex justify-between ">
                     <div>
                       <h3 className="mb-7 font-20 font-w-400">Коды</h3>
-                      <p className="text-gray-500">Ввод символов<br /> для доступа</p>
+                      <p className="text-gray-500">Ввод символов для доступа</p>
                     </div>
                     <button
                       type="button"
@@ -210,7 +214,7 @@ export default function Home() {
                     <div>
                       <h3 className="mb-7 font-20 font-w-400">Тема</h3>
                       <p className="text-gray-500">
-                        Смена режима <br />в один клик
+                        Смена режима в один клик
                       </p>
                     </div>
                     <button
@@ -241,7 +245,9 @@ export default function Home() {
       </section>
 
       <section>
-        <div className="h-1000">beta</div>
+        <div className="h-1000">
+          123
+        </div>
       </section>
 
     </main>
