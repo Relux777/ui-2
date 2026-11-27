@@ -1,598 +1,45 @@
-// RenDit Code IntelliSense — расширение VS Code.
+// RenDit Code IntelliSense — расширение VS Code. Точка входа: только регистрация провайдеров
+// и общая инициализация. Логика разложена по src/*.js.
 //
 // Что делает:
-//   • автодополнение классов и вариантов (hover:, md:, dark: …) в className="…", class="…",
-//     className={["…", "…"].join(" ")}, cn("…") и т.п.;
+//   • автодополнение классов и вариантов в className="…", class="…", cn("…") и т.п. — с коротким
+//     описанием каждого класса (pb-4 → padding-bottom: 4px) и понятной подписью вариантов;
 //   • при наведении на класс — CSS, который сгенерирует движок;
-//   • образцы цвета рядом с bg-…, text-…, border-… (значения токенов светлой темы).
+//   • образцы цвета рядом с bg-…, text-…, border-… (значения токенов светлой темы);
+//   • опциональная проверка классов (renditCode.validateClasses).
 //
 // Своих правил у расширения нет: оно загружает движок проекта (rendit-code/core) и спрашивает его.
-// Поэтому подсказки всегда совпадают с тем, что реально попадёт в CSS. Новый токен в settings/*.scss
-// или правка rendit.config.mjs подхватываются сами; правки кода движка — после Developer: Reload Window.
-
+// Сборка и установка — node rendit-code/vscode/install.mjs.
 const vscode = require("vscode");
-const path = require("node:path");
-const { pathToFileURL } = require("node:url");
+const state = require("./src/state");
+const { LANGUAGES, TRIGGER_CHARS } = require("./src/config");
+const {
+  getProject,
+  findRoots,
+  reloadAll,
+  onConfigChange,
+} = require("./src/project");
+const { completionProvider } = require("./src/completion");
+const { hoverProvider } = require("./src/hover");
+const { colorProvider } = require("./src/color");
+const { registerDiagnostics } = require("./src/diagnostics");
 
-const LANGUAGES = [
-  "typescriptreact",
-  "javascriptreact",
-  "typescript",
-  "javascript",
-  "html",
-  "mdx",
-  "markdown",
-  "vue",
-  "svelte",
-  "astro",
-];
 const SELECTOR = LANGUAGES.map((language) => ({ language, scheme: "file" }));
-const TOKEN_CHAR = /[^\s"'`{}]/;
-
-/** @type {vscode.OutputChannel} */
-let log;
-let diagnostics;
-/** корень проекта (папка с rendit.config.mjs) → Promise<Project> */
-const projects = new Map();
-let roots = [];
-
-// ── Загрузка движка проекта ───────────────────────────────────────────────────
-async function loadProject(root) {
-  const stamp = Date.now();
-  const load = (file) =>
-    import(
-      `${pathToFileURL(path.join(root, "rendit-code", "core", file)).href}?v=${stamp}`
-    );
-  const [
-    { loadConfig },
-    { createGenerator },
-    { buildCatalog, classColor },
-    { splitTopLevel },
-  ] = await Promise.all([
-    load("config.mjs"),
-    load("generator.mjs"),
-    load("catalog.mjs"),
-    load("parser.mjs"),
-  ]);
-
-  const started = Date.now();
-  const config = await loadConfig(root);
-  const generator = createGenerator(config.theme, config);
-  const catalog = buildCatalog(config, generator);
-
-  // цвета для образцов в списке подсказок считаются один раз
-  const colors = new Map();
-  for (const cls of catalog.utilities) {
-    const c = classColor(cls, config, generator);
-    if (c) colors.set(cls, c);
-  }
-
-  log.appendLine(
-    `[${root}] RenDit Code v${config.version}: ${catalog.utilities.length} классов, ${catalog.variants.length} вариантов, ` +
-      `${colors.size} цветов — за ${Date.now() - started} мс${config.tokenInfo.warning ? ` (⚠ ${config.tokenInfo.warning})` : ""}`,
-  );
-
-  return {
-    root,
-    config,
-    generator,
-    catalog,
-    colors,
-    splitTopLevel,
-    colorOf: (cls) => colors.get(cls) ?? classColor(cls, config, generator),
-    items: null, // готовые CompletionItem без префикса — собираются при первом запросе
-  };
-}
-
-function getProject(root) {
-  if (!projects.has(root)) {
-    const p = loadProject(root).catch((err) => {
-      log.appendLine(
-        `[${root}] ✖ не удалось загрузить движок: ${err?.stack ?? err}`,
-      );
-      projects.delete(root);
-      return null;
-    });
-    projects.set(root, p);
-  }
-  return projects.get(root);
-}
-
-async function findRoots() {
-  const files = await vscode.workspace.findFiles(
-    "**/rendit.config.mjs",
-    "**/node_modules/**",
-    20,
-  );
-  roots = files
-    .map((f) => path.dirname(f.fsPath))
-    .sort((a, b) => b.length - a.length);
-}
-
-// проект, в котором лежит файл (самая глубокая папка с rendit.config.mjs)
-function projectFor(doc) {
-  const file = doc.uri.fsPath.toLowerCase();
-  const root = roots.find((r) => file.startsWith(r.toLowerCase() + path.sep));
-  return root ? getProject(root) : Promise.resolve(null);
-}
-
-// ── Где мы: внутри строки с классами? ─────────────────────────────────────────
-function classFunctions() {
-  return vscode.workspace
-    .getConfiguration("renditCode")
-    .get("classFunctions", ["cn", "clsx", "cva", "twMerge", "tv"]);
-}
-
-const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-// Текст строки с классами от её начала до позиции (или null, если позиция не в такой строке)
-function classStringBefore(doc, pos) {
-  const offset = doc.offsetAt(pos);
-  const before = doc.getText(
-    new vscode.Range(doc.positionAt(Math.max(0, offset - 3000)), pos),
-  );
-
-  // className="…  class='…  className={`…
-  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)$/i.exec(
-    before,
-  );
-  if (attr) return attr[2];
-
-  // className={["flex", "gap-…"].join(" ")}
-  const arrayStart = /\bclassName\s*=\s*\{\s*\[/g;
-  let arrayMatch;
-  let lastArrayMatch;
-  while ((arrayMatch = arrayStart.exec(before))) lastArrayMatch = arrayMatch;
-  if (lastArrayMatch) {
-    let depth = 1;
-    let quote = null;
-    let quoteStart = -1;
-    let escaped = false;
-    const start = lastArrayMatch.index + lastArrayMatch[0].length;
-
-    for (let i = start; i < before.length; i++) {
-      const ch = before[i];
-      if (quote) {
-        if (escaped) {
-          escaped = false;
-        } else if (ch === "\\") {
-          escaped = true;
-        } else if (ch === quote) {
-          quote = null;
-        }
-      } else if (ch === "'" || ch === '"' || ch === "`") {
-        quote = ch;
-        quoteStart = i;
-      } else if (ch === "[") {
-        depth++;
-      } else if (ch === "]" && --depth === 0) {
-        break;
-      }
-    }
-
-    if (quote) return before.slice(quoteStart + 1);
-  }
-
-  // cn("a", "b…  — открытый вызов, и курсор внутри строки
-  const fns = classFunctions().map(escapeRe).join("|");
-  if (!fns) return null;
-  const call = new RegExp(`\\b(?:${fns})\\(([^()]*)$`).exec(before);
-  if (!call) return null;
-  const args = call[1];
-  const lastQuote = Math.max(
-    args.lastIndexOf('"'),
-    args.lastIndexOf("'"),
-    args.lastIndexOf("`"),
-  );
-  if (lastQuote === -1) return null;
-  const q = args[lastQuote];
-  const count = args.split(q).length - 1;
-  return count % 2 === 1 ? args.slice(lastQuote + 1) : null;
-}
-
-// Границы класса вокруг позиции в строке
-function tokenRangeAt(doc, pos) {
-  const line = doc.lineAt(pos.line).text;
-  let start = pos.character;
-  let end = pos.character;
-  while (start > 0 && TOKEN_CHAR.test(line[start - 1])) start--;
-  while (end < line.length && TOKEN_CHAR.test(line[end])) end++;
-  return new vscode.Range(pos.line, start, pos.line, end);
-}
-
-// ── Автодополнение ────────────────────────────────────────────────────────────
-function toHex({ r, g, b }) {
-  const h = (x) =>
-    Math.round(x * 255)
-      .toString(16)
-      .padStart(2, "0");
-  return `#${h(r)}${h(g)}${h(b)}`;
-}
-
-function baseItems(project) {
-  if (project.items) return project.items;
-  const utilities = project.catalog.utilities.map((cls, i) => {
-    const color = project.colors.get(cls);
-    const item = new vscode.CompletionItem(
-      cls,
-      color
-        ? vscode.CompletionItemKind.Color
-        : vscode.CompletionItemKind.Constant,
-    );
-    item.sortText = `1${String(i).padStart(5, "0")}`;
-    // для цвета VS Code рисует образец, если documentation — строка с цветом
-    if (color) item.documentation = toHex(color);
-    item.renditClass = cls;
-    return item;
-  });
-  const variants = project.catalog.variants.map((v, i) => {
-    const item = new vscode.CompletionItem(
-      `${v}:`,
-      vscode.CompletionItemKind.Keyword,
-    );
-    item.sortText = `0${String(i).padStart(5, "0")}`;
-    item.detail = "вариант RenDit Code";
-    item.command = { command: "editor.action.triggerSuggest", title: "" };
-    item.renditVariant = v;
-    return item;
-  });
-  project.items = { utilities, variants };
-  return project.items;
-}
-
-function fuzzyScore(query, candidate) {
-  if (!query) return 0;
-
-  query = query.toLowerCase();
-  candidate = candidate.toLowerCase();
-
-
-  let previousIndex = -1;
-  let score = 0;
-
-  for (const char of query) {
-    const index = candidate.indexOf(char, previousIndex + 1);
-
-    if (index === -1) return -1;
-
-    // Чем ближе символы друг к другу, тем лучше совпадение.
-    if (previousIndex !== -1) {
-      score += index - previousIndex - 1;
-    } else {
-      score += index * 2;
-    }
-
-    // Небольшой бонус за непрерывное совпадение.
-    if (index === previousIndex + 1) {
-      score -= 2;
-    }
-
-    previousIndex = index;
-  }
-
-  return Math.max(0, score);
-}
-
-
-const completionProvider = {
-  async provideCompletionItems(doc, pos) {
-    const content = classStringBefore(doc, pos);
-    if (content === null) return null;
-
-    const project = await projectFor(doc);
-    if (!project) return null;
-
-    const token = content.split(/\s+/).pop() ?? "";
-    const parts = project.splitTopLevel(token, ":");
-
-    if (!parts) return null;
-
-    // Уже введённая цепочка вариантов.
-    let prefix =
-      parts.length > 1
-        ? `${parts.slice(0, -1).join(":")}:`
-        : "";
-
-    const currentPart = parts[parts.length - 1] ?? "";
-    const important = currentPart.startsWith("!");
-
-    // Ищем без !, но сохраняем его при вставке класса.
-    const query = important
-      ? currentPart.slice(1)
-      : currentPart;
-
-    if (important) {
-      prefix += "!";
-    }
-
-    const full = tokenRangeAt(doc, pos);
-
-    const range = new vscode.Range(
-      pos.translate(0, -token.length),
-      full.end.isAfter(pos) ? full.end : pos,
-    );
-
-    const { utilities, variants } = baseItems(project);
-
-    // Создаём CompletionItem только после фильтрации.
-    // Это уменьшает количество лишних объектов при вводе.
-    const make = (base, text, score) => {
-      const item = new vscode.CompletionItem(
-        base.label,
-        base.kind,
-      );
-
-      item.sortText =
-        String(score).padStart(5, "0") + base.sortText;
-
-      item.documentation = base.documentation;
-      item.detail = base.detail;
-      item.command = base.command;
-
-      item.insertText = text;
-      item.filterText = text;
-      item.range = range;
-
-      if (base.renditClass) {
-        item.renditClass = text;
-      }
-
-      return item;
-    };
-
-    const matches = [];
-
-    // Варианты: hover:, focus:, md:, dark: и т.д.
-    for (const variant of variants) {
-      const name = variant.renditVariant;
-      const score = fuzzyScore(query, name);
-
-      if (score === -1) continue;
-
-      const insertText =
-        `${prefix.replace(/!$/, "")}${name}:`;
-
-      matches.push({
-        base: variant,
-        text: insertText,
-        score,
-      });
-    }
-
-    // Обычные классы: flex, grid, bg-red и т.д.
-    for (const utility of utilities) {
-      const name = utility.renditClass;
-      const score = fuzzyScore(query, name);
-
-      if (score === -1) continue;
-
-      const insertText = `${prefix}${name}`;
-
-      matches.push({
-        base: utility,
-        text: insertText,
-        score,
-      });
-    }
-
-    // Сначала лучшие совпадения.
-    matches.sort((a, b) => a.score - b.score);
-
-    const items = matches.map(({ base, text, score }) =>
-      make(base, text, score),
-    );
-
-    return new vscode.CompletionList(items, false);
-  },
-
-  // CSS класса генерируется только для выбранной подсказки.
-  async resolveCompletionItem(item) {
-    if (!item.renditClass) return item;
-
-    const doc = vscode.window.activeTextEditor?.document;
-    const project = doc && (await projectFor(doc));
-
-    if (!project) return item;
-
-    const css = cssFor(project, item.renditClass);
-    if (!css) return item;
-
-    if (item.kind === vscode.CompletionItemKind.Color) {
-      item.detail = oneLine(css);
-    } else {
-      item.documentation = new vscode.MarkdownString()
-        .appendCodeblock(css, "css");
-    }
-
-    return item;
-  },
-};
-
-
-// CSS одного класса без шапки файла и обёртки @layer
-function cssFor(project, cls) {
-  if (!project.generator.isValid(cls)) return null;
-  let css;
-  try {
-    ({ css } = project.generator.generate([cls]));
-  } catch (error) {
-    log.appendLine(
-      `[${project.root}] ✖ не удалось сгенерировать CSS для "${cls}": ${error?.stack ?? error}`,
-    );
-    return null;
-  }
-  const lines = css
-    .split("\n")
-    .filter((l) => !l.startsWith("/*!") && !l.startsWith("@property"));
-  const start = lines.findIndex((l) => l.startsWith("@layer"));
-  const body = lines.slice(start + 1, lines.lastIndexOf("}"));
-  return body
-    .map((l) => l.replace(/^ {2}/, ""))
-    .join("\n")
-    .trim();
-}
-
-const oneLine = (css) =>
-  css
-    .split("\n")
-    .filter((l) => /^\s+[\w-]+:/.test(l))
-    .map((l) => l.trim())
-    .join(" ");
-
-// ── Наведение: CSS класса ─────────────────────────────────────────────────────
-const hoverProvider = {
-  async provideHover(doc, pos) {
-    const range = tokenRangeAt(doc, pos);
-    if (range.isEmpty) return null;
-    if (classStringBefore(doc, range.start) === null) return null;
-    const project = await projectFor(doc);
-    if (!project) return null;
-    const cls = doc.getText(range);
-    const css = cssFor(project, cls);
-    if (!css) return null;
-    const md = new vscode.MarkdownString();
-    md.appendCodeblock(css, "css");
-    md.appendMarkdown(`\n*RenDit Code v${project.config.version}*`);
-    return new vscode.Hover(md, range);
-  },
-};
-
-// ── Образцы цвета ─────────────────────────────────────────────────────────────
-function classStrings(text) {
-  const out = [];
-  const attr = /\b(?:className|class)\s*=\s*(?:\{\s*)?(["'`])([^"'`]*)\1/gi;
-  for (const m of text.matchAll(attr))
-    out.push({ start: m.index + m[0].indexOf(m[1]) + 1, value: m[2] });
-  const fns = classFunctions().map(escapeRe).join("|");
-  if (fns) {
-    for (const call of text.matchAll(
-      new RegExp(`\\b(?:${fns})\\(([^()]*)\\)`, "g"),
-    )) {
-      const argsStart = call.index + call[0].indexOf("(") + 1;
-      for (const s of call[1].matchAll(/(["'`])([^"'`]*)\1/g))
-        out.push({ start: argsStart + s.index + 1, value: s[2] });
-    }
-  }
-  return out;
-}
-
-async function updateDiagnostics(doc) {
-  if (doc.isClosed) return;
-
-  const enabled = vscode.workspace
-    .getConfiguration("renditCode")
-    .get("validateClasses", false);
-
-  if (!enabled) {
-    diagnostics.delete(doc.uri);
-    return;
-  }
-
-  const version = doc.version;
-  const project = await projectFor(doc);
-
-  if (!project || doc.isClosed || doc.version !== version) {
-    return;
-  }
-
-  const result = [];
-  const source = doc.getText();
-
-  for (const { start, value } of classStrings(source)) {
-    for (const match of value.matchAll(/\S+/g)) {
-      const cls = match[0];
-
-      // Не проверяем динамические классы и слишком длинные значения.
-      if (
-        !cls ||
-        cls.length > 256 ||
-        cls.includes("${") ||
-        cls.includes("}")
-      ) {
-        continue;
-      }
-
-      if (project.generator.isValid(cls)) continue;
-
-      const from = doc.positionAt(start + match.index);
-      const to = doc.positionAt(start + match.index + cls.length);
-
-      const diagnostic = new vscode.Diagnostic(
-        new vscode.Range(from, to),
-        `Неизвестный класс RenDit Code: "${cls}"`,
-        vscode.DiagnosticSeverity.Warning,
-      );
-
-      diagnostic.source = "RenDit Code";
-      diagnostic.code = "unknown-class";
-
-      result.push(diagnostic);
-    }
-  }
-
-  if (doc.version === version && !doc.isClosed) {
-    diagnostics.set(doc.uri, result);
-  }
-}
-
-const colorProvider = {
-  async provideDocumentColors(doc) {
-    if (
-      !vscode.workspace
-        .getConfiguration("renditCode")
-        .get("colorDecorators", true)
-    )
-      return [];
-    const project = await projectFor(doc);
-    if (!project) return [];
-    const result = [];
-    for (const { start, value } of classStrings(doc.getText())) {
-      for (const m of value.matchAll(/\S+/g)) {
-        const color = project.colorOf(m[0]);
-        if (!color) continue;
-        const from = doc.positionAt(start + m.index);
-        const to = doc.positionAt(start + m.index + m[0].length);
-        result.push(
-          new vscode.ColorInformation(
-            new vscode.Range(from, to),
-            new vscode.Color(color.r, color.g, color.b, color.a),
-          ),
-        );
-      }
-    }
-    return result;
-  },
-  // выбор в палитре ничего не меняет: цвет класса задаётся токеном, а не hex
-  provideColorPresentations(_color, { document, range }) {
-    return [new vscode.ColorPresentation(document.getText(range))];
-  },
-};
-
-// ── Подключение ───────────────────────────────────────────────────────────────
-function reloadAll() {
-  projects.clear();
-  return findRoots();
-}
 
 async function activate(context) {
-  log = vscode.window.createOutputChannel("RenDit Code");
-  diagnostics = vscode.languages.createDiagnosticCollection("rendit-code");
+  state.log = vscode.window.createOutputChannel("RenDit Code");
+  state.diagnostics =
+    vscode.languages.createDiagnosticCollection("rendit-code");
 
   await findRoots();
 
   context.subscriptions.push(
-    log,
-    diagnostics,
+    state.log,
+    state.diagnostics,
     vscode.languages.registerCompletionItemProvider(
       SELECTOR,
       completionProvider,
-      '"',
-      "'",
-      "`",
-      " ",
-      ":",
-      "-",
-      "/",
+      ...TRIGGER_CHARS,
     ),
     vscode.languages.registerHoverProvider(SELECTOR, hoverProvider),
     vscode.languages.registerColorProvider(SELECTOR, colorProvider),
@@ -605,41 +52,27 @@ async function activate(context) {
     }),
   );
 
-  // конфиг движка или токены изменились — перезагрузить проект
+  registerDiagnostics(context);
+
+  // Конфиг движка или токены изменились — перезагрузить проект.
   const watcher = vscode.workspace.createFileSystemWatcher(
     "**/{rendit.config.mjs,*.scss,package.json}",
   );
-  const onChange = async (uri) => {
-    if (uri.fsPath.includes(`${path.sep}node_modules${path.sep}`)) return;
-    if (uri.fsPath.endsWith("rendit.config.mjs")) return reloadAll();
-    for (const [root, p] of projects) {
-      const project = await p;
-      const isToken = project?.config.tokenInfo.files.some(
-        (f) => path.resolve(f).toLowerCase() === uri.fsPath.toLowerCase(),
-      );
-      const isPkg =
-        uri.fsPath.toLowerCase() ===
-        path.join(root, "package.json").toLowerCase();
-      if (isToken || isPkg) projects.delete(root);
-    }
-  };
   context.subscriptions.push(
     watcher,
-    watcher.onDidChange(onChange),
-    watcher.onDidCreate(onChange),
-    watcher.onDidDelete(onChange),
+    watcher.onDidChange(onConfigChange),
+    watcher.onDidCreate(onConfigChange),
+    watcher.onDidDelete(onConfigChange),
   );
 
-  // прогреть движок заранее, чтобы первая подсказка была мгновенной
-  for (const root of roots) getProject(root);
+  // Прогреть движок заранее, чтобы первая подсказка была мгновенной.
+  for (const root of state.roots) getProject(root);
 }
 
 function deactivate() {
-  if (diagnostics) {
-    diagnostics.clear();
-    diagnostics.dispose();
-  }
+  state.diagnostics?.clear();
+  state.diagnostics?.dispose();
+  state.diagnostics = null;
 }
-
 
 module.exports = { activate, deactivate };

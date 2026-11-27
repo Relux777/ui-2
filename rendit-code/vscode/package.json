@@ -2,7 +2,7 @@
   "name": "rendit-code",
   "displayName": "RenDit Code IntelliSense",
   "description": "Подсказки классов RenDit Code: автодополнение, CSS при наведении, образцы цвета",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "publisher": "rendit",
   "license": "MIT",
   "repository": {

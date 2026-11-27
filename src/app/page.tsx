@@ -198,6 +198,7 @@ export default function Home() {
                         height={20}
                         aria-hidden="true"
                         className="transition-colors duration-200 group-hover:fill-violet-500"
+                      
                       />
                     </button>
                   </div>
@@ -246,7 +247,9 @@ export default function Home() {
 
       <section>
         <div className="h-1000">
-          123
+          <div className="p-15 bg-red">
+            123
+          </div>
         </div>
       </section>
 
